@@ -1,0 +1,95 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Stores user-specific game data and progress, linked to an external authentication system's user ID.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity, matching the external authentication system's user ID (UID)."
+        },
+        "coins": {
+          "type": "number",
+          "description": "The number of in-game units the user has accumulated."
+        },
+        "exp": {
+          "type": "number",
+          "description": "Experience points earned through mission completion."
+        },
+        "score": {
+          "type": "number",
+          "description": "Cumulative score reflecting decryption accuracy."
+        },
+        "currentLevel": {
+          "type": "number",
+          "description": "The highest level index the user has unlocked."
+        },
+        "completedLevels": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "List of level IDs successfully cleared."
+        },
+        "unlockedLevels": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "List of level IDs currently available to the user."
+        },
+        "badges": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of merit badges earned for specific algorithms."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "coins",
+        "exp",
+        "score",
+        "currentLevel",
+        "completedLevels",
+        "unlockedLevels",
+        "badges"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user-specific game data and progress. The `userId` matches `request.auth.uid`.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "Standardized the UserProfile schema to match the operational game logic, ensuring EXP, score, and badges are properly tracked in the backend blueprint."
+  }
+}

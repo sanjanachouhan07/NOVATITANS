@@ -1,0 +1,28 @@
+{
+  "placeholderImages": [
+    {
+      "id": "theme-background",
+      "description": "A visceral, dark scene of a Demogorgon-like monster emerging from a glowing red rift in a dark forest.",
+      "imageUrl": "https://picsum.photos/seed/demogorgon-rift/1920/1080",
+      "imageHint": "monster demogorgon rift"
+    },
+    {
+      "id": "intro-bg",
+      "description": "Haunting silhouette of the Hawkins laboratory under a blood-red moon.",
+      "imageUrl": "https://picsum.photos/seed/hawkins-lab/1920/1080",
+      "imageHint": "spooky building red sky"
+    },
+    {
+      "id": "landing-bg",
+      "description": "A dark, eerie scene of a boarded-up spooky house with red glowing windows and a massive monster hand reaching from the shadows.",
+      "imageUrl": "https://picsum.photos/seed/creepy-house-rift/1920/1080",
+      "imageHint": "creepy house monster"
+    },
+    {
+      "id": "winning-card",
+      "description": "A grand mastery winning card featuring the 'Crypto Things' logo, Level 7 confirmation, and the main Hawkins cast in a cinematic golden-bordered frame.",
+      "imageUrl": "https://picsum.photos/seed/crypto-things-win/600/900",
+      "imageHint": "winning card monster cast"
+    }
+  ]
+}

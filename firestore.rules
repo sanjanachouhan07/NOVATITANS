@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * CORE SECURITY PHILOSOPHY:
+     * 1. User-Ownership Model: All personal data (profiles, progress) is strictly nested under /users/{userId}.
+     *    Access is granted only if the authenticated UID matches the {userId} in the path.
+     * 2. Public Game Content: Level data, puzzles, hints, and learning materials are read-only for all 
+     *    authenticated users but strictly protected from client-side modifications.
+     * 3. Prototyping Flexibility: Rules focus on WHO can access WHAT (Authorization) rather than the 
+     *    exact SHAPE of the data (Validation). Relational integrity is enforced for critical link fields.
+     * 4. Denormalization for Performance: Relational IDs (like userId) are validated on write to ensure 
+     *    fast, single-document security checks without requiring costly get() calls across collections.
+     */
+
+    // --- Global Helper Functions ---
+
+    /**
+     * @description Checks if a user is authenticated with Firebase Auth.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user's UID matches a provided ID.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Combined check for ownership and document existence for state-changing operations.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for UserProfile entity. Supports self-creation and private access.
+     * @path /users/{userId}
+     * @allow (create) if auth.uid == "user_123" (get/list) if auth.uid == "user_123"
+     * @deny (get) if auth.uid == "user_abc" (requesting user_123)
+     * @principle Enforces document ownership for personal profiles and progress.
+     */
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Rules for UserProblemAttempt. Private progress tracking.
+       * @path /users/{userId}/problemAttempts/{attemptId}
+       * @allow (create) if auth.uid == userId and userId matches data.userId
+       * @deny (create) if auth.uid attempts to set data.userId to someone else.
+       * @principle Ensures progress tracking is linked correctly to the owner and remains private.
+       */
+      match /problemAttempts/{attemptId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+
+    /**
+     * @description Rules for game Level definitions.
+     * @path /levels/{levelId}
+     * @allow (get/list) if any authenticated user
+     * @deny (create/update/delete) by any client (Read-Only).
+     * @principle Provides public game metadata while preventing unauthorized modifications.
+     */
+    match /levels/{levelId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if false;
+
+      /**
+       * @description Rules for cryptographic Problems within a level.
+       * @path /levels/{levelId}/problems/{problemId}
+       * @allow (get/list) if any authenticated user
+       * @deny (create/update/delete) by any client.
+       * @principle Restricts problem bank to read-only access for gameplay.
+       */
+      match /problems/{problemId} {
+        allow get, list: if isSignedIn();
+        allow create, update, delete: if false;
+
+        /**
+         * @description Rules for Hints associated with specific problems.
+         * @path /levels/{levelId}/problems/{problemId}/hints/{hintId}
+         * @allow (get/list) if any authenticated user
+         * @deny (create/update/delete) by any client.
+         * @principle Ensures hints are available to players but immutable from the client.
+         */
+        match /hints/{hintId} {
+          allow get, list: if isSignedIn();
+          allow create, update, delete: if false;
+        }
+      }
+
+      /**
+       * @description Rules for LearningContent (storyline and guides).
+       * @path /levels/{levelId}/learningContent/{contentId}
+       * @allow (get/list) if any authenticated user
+       * @deny (create/update/delete) by any client.
+       * @principle Facilitates access to storyline and educational content for all players.
+       */
+      match /learningContent/{contentId} {
+        allow get, list: if isSignedIn();
+        allow create, update, delete: if false;
+      }
+    }
+
+    /**
+     * @description Rules for VideoAsset metadata.
+     * @path /videoAssets/{videoId}
+     * @allow (get/list) if any authenticated user
+     * @deny (create/update/delete) by any client.
+     * @principle Protects references to cinematic assets in Firebase Storage.
+     */
+    match /videoAssets/{videoId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if false;
+    }
+  }
+}
