@@ -33,8 +33,8 @@ Players act as codebreakers who must decode transmissions and stop malicious cyb
 
 Theme characteristics:
 
-* Dark neon environment
-* Suspense background music
+* Dark neon red environment
+* Suspense background button  sound/ voice integration on buttons
 * Glitch animations
 * Digital monsters created from corrupted code
 * Retro terminal interface
